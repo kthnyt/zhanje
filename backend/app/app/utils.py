@@ -1,3 +1,7 @@
+import json
+import os
+import email
+import imaplib
 import logging
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -6,6 +10,7 @@ from typing import Any, Dict, Optional
 import emails
 from emails.template import JinjaTemplate
 from jose import jwt
+from tqdm import tqdm
 
 from app.core.config import settings
 
@@ -104,3 +109,88 @@ def verify_password_reset_token(token: str) -> Optional[str]:
         return decoded_token["email"]
     except jwt.JWTError:
         return None
+
+
+class ImapResponse:
+    def __init__(self):
+        self.OK = 'OK'
+        self.NO = 'NO'
+
+
+class ReadEmail:
+    """Use imap protocol to read emails and download attachments"""
+
+    def __init__(self):
+        self._var = 'var'
+
+    @staticmethod
+    def get_attachments(save_dir: str = '/app/app/files/food_service_orders/', email_label: str = 'Inbox',
+                        search_string: str = 'ALL'):
+
+        email_user = settings.IMAP_USER
+        email_pass = settings.IMAP_PASSWORD
+
+        mail = imaplib.IMAP4_SSL(settings.IMAP_HOST, settings.IMAP_PORT)
+        mail.login(email_user, email_pass)
+
+        mail.select(email_label)
+
+        # search for emails by subject
+        response_type, data = mail.search(None, search_string)
+        mail_ids = data[0].split()
+
+        messages = dict()
+
+        # assert response_type == 'OK'
+        if response_type == 'OK':
+            attachment_number = 0
+            filename = None
+
+            for mail_id in tqdm(mail_ids):
+                # fetch email data for selected email
+                typ, data = mail.fetch(mail_id, '(RFC822)')
+                raw_email = data[0][1]
+
+                # converts byte literal to string removing b''
+                raw_email_string = raw_email.decode('utf-8')
+                email_message = email.message_from_string(raw_email_string)
+
+                # downloading attachments
+                for i, part in enumerate(email_message.walk()):
+
+                    if part.get_content_maintype() == 'multipart':
+                        continue
+                    if part.get('Content-Disposition') is None:
+                        continue
+
+                    filename = part.get_filename()
+
+                    if filename is not None:
+                        attachment_number += 1
+                        file_ext = filename.split('.')[-1]
+                        if file_ext == 'csv':
+                            # TODO use uuid from db table to save filename, for security!
+                            save_path = os.path.join(save_dir, filename)
+                            if not os.path.isfile(save_path):
+                                # TODO check that file is actually a CSV, use csv.Sniffer
+                                try:
+                                    fp = open(save_path, 'wb')
+                                    fp.write(part.get_payload(decode=True))
+                                    fp.close()
+                                    message = f'Saved: {filename}'
+                                except Exception as e:
+                                    message = f'Error saving attachment {filename}: {e}'
+                            else:
+                                message = f'File {filename} already exists.'
+                        else:
+                            message = f"File {filename} not downloaded. File extension not 'csv'."
+                    else:
+                        message = None
+
+                    messages.update({attachment_number: {"message": message}})
+
+        else:
+            messages.update({"ERROR": {"message": "response_type != 'OK'"}})
+
+        return json.dumps(messages)
+

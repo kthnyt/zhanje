@@ -56,6 +56,10 @@ class Settings(BaseSettings):
     SMTP_HOST: Optional[str] = None
     SMTP_USER: Optional[str] = None
     SMTP_PASSWORD: Optional[str] = None
+    IMAP_PORT: Optional[int] = None
+    IMAP_HOST: Optional[str] = None
+    IMAP_USER: Optional[str] = None
+    IMAP_PASSWORD: Optional[str] = None
     EMAILS_FROM_EMAIL: Optional[EmailStr] = None
     EMAILS_FROM_NAME: Optional[str] = None
 
