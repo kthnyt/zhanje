@@ -14,9 +14,9 @@ celery_app.conf.task_routes = {
 }
 
 celery_app.conf.beat_schedule = {
-    'add-every-30-seconds': {
+    'add-every-5-minutes': {
         'task': 'app.worker.add',
-        'schedule': 30.0,
+        'schedule': 60.0 * 5,
         'args': (16, 16)
     },
     'get-email-attachments': {
