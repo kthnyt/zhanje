@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 import emails
+from app.models.file import File
 from emails.template import JinjaTemplate
 from jose import jwt
 from tqdm import tqdm
@@ -124,7 +125,7 @@ class ReadEmail:
         self._var = 'var'
 
     @staticmethod
-    def get_attachments(save_dir: str = '/app/app/files/food_service_orders/', email_label: str = 'Inbox',
+    def get_attachments(save_dir: str = settings.DEFAULT_FILE_DIRECTORY, email_label: str = 'Inbox',
                         search_string: str = 'ALL'):
 
         email_user = settings.IMAP_USER
@@ -163,34 +164,46 @@ class ReadEmail:
                     if part.get('Content-Disposition') is None:
                         continue
 
-                    filename = part.get_filename()
+                    original_filename = part.get_filename()
 
-                    if filename is not None:
+                    if original_filename is not None:
                         attachment_number += 1
-                        file_ext = filename.split('.')[-1]
+                        filename, file_ext = original_filename.split('.')
+                        filename = filename.replace('(', '').replace(')', '').replace(' ', '_').replace('?','').replace('-','_')
                         if file_ext == 'csv':
-                            # TODO use uuid from db table to save filename, for security!
-                            save_path = os.path.join(save_dir, filename)
+                            # use uuid from db table to save filename, for security!
+                            # TODO Should this be in upsert on File model
+                            try:
+                                file = File.get_by_name(filename)
+                            except Exception as e:
+                                raise e
+
+                            if file is None:
+                                # TODO fix source == NoneType
+                                source = File.determined_source(name=filename)
+                                file = File.create(name=filename, ext=file_ext, source=source)
+
+                            save_path = os.path.join(save_dir, str(file.id) + '.' + file.ext)
                             if not os.path.isfile(save_path):
                                 # TODO check that file is actually a CSV, use csv.Sniffer
                                 try:
                                     fp = open(save_path, 'wb')
                                     fp.write(part.get_payload(decode=True))
                                     fp.close()
-                                    message = f'Saved: {filename}'
+                                    message = f'Download complete for "{original_filename}"'
                                 except Exception as e:
-                                    message = f'Error saving attachment {filename}: {e}'
+                                    message = f'Error downloading "{original_filename}"'
                             else:
-                                message = f'File {filename} already exists.'
+                                message = f'"{original_filename}" already exists.'
                         else:
-                            message = f"File {filename} not downloaded. File extension not 'csv'."
+                            message = f"{original_filename} not a CSV, download cancelled"
                     else:
                         message = None
 
-                    messages.update({attachment_number: {"message": message}})
+                    messages.update({attachment_number: message})
 
         else:
-            messages.update({"ERROR": {"message": "response_type != 'OK'"}})
+            messages.update({"error": "response_type != 'OK'"})
 
         return json.dumps(messages)
 
