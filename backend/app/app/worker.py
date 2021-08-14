@@ -17,7 +17,6 @@ def test_celery(word: str) -> str:
 @celery_app.task(name='app.worker.add', queue='main-queue')
 def add(x, y):
     z = x + y
-    logging.warning(z)
     return z
 
 @celery_app.task
