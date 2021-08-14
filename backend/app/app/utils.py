@@ -1,4 +1,3 @@
-import json
 import os
 import email
 import imaplib
@@ -8,12 +7,13 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 import emails
-from app.models.file import File
 from emails.template import JinjaTemplate
+from fastapi.encoders import jsonable_encoder
 from jose import jwt
 from tqdm import tqdm
 
 from app.core.config import settings
+from app.models.filemap import FileMap
 
 
 def send_email(
@@ -112,12 +112,6 @@ def verify_password_reset_token(token: str) -> Optional[str]:
         return None
 
 
-class ImapResponse:
-    def __init__(self):
-        self.OK = 'OK'
-        self.NO = 'NO'
-
-
 class ReadEmail:
     """Use imap protocol to read emails and download attachments"""
 
@@ -168,20 +162,21 @@ class ReadEmail:
 
                     if original_filename is not None:
                         attachment_number += 1
+
                         filename, file_ext = original_filename.split('.')
                         filename = filename.replace('(', '').replace(')', '').replace(' ', '_').replace('?','').replace('-','_')
                         if file_ext == 'csv':
                             # use uuid from db table to save filename, for security!
                             # TODO Should this be in upsert on File model
                             try:
-                                file = File.get_by_name(filename)
+                                file = FileMap.get_by_name(filename)
                             except Exception as e:
                                 raise e
 
                             if file is None:
                                 # TODO fix source == NoneType
-                                source = File.determined_source(name=filename)
-                                file = File.create(name=filename, ext=file_ext, source=source)
+                                source = FileMap.determined_source(name=filename)
+                                file = FileMap.create(name=filename, ext=file_ext, source=source)
 
                             save_path = os.path.join(save_dir, str(file.id) + '.' + file.ext)
                             if not os.path.isfile(save_path):
@@ -190,20 +185,20 @@ class ReadEmail:
                                     fp = open(save_path, 'wb')
                                     fp.write(part.get_payload(decode=True))
                                     fp.close()
-                                    message = f'Download complete for "{original_filename}"'
+                                    message = f'Download complete for {original_filename}'
                                 except Exception as e:
-                                    message = f'Error downloading "{original_filename}"'
+                                    message = f'Error downloading {original_filename}'
                             else:
-                                message = f'"{original_filename}" already exists.'
+                                message = f'{original_filename} already exists.'
                         else:
-                            message = f"{original_filename} not a CSV, download cancelled"
+                            message = f'{original_filename} not a CSV, download cancelled'
                     else:
                         message = None
 
                     messages.update({attachment_number: message})
 
         else:
-            messages.update({"error": "response_type != 'OK'"})
+            messages.update({'error': 'response_type != "OK"'})
 
-        return json.dumps(messages)
+        return jsonable_encoder(messages)
 

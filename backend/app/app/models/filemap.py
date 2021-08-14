@@ -14,7 +14,7 @@ from app.db.base_class import Base
 #     from .user import User  # noqa: F401
 
 # TODO: Move to API ?
-class File(Base):
+class FileMap(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid4,)
     name = Column(String, index=True)
     ext = Column(String)
@@ -27,7 +27,7 @@ class File(Base):
     # TODO is it good practice to add model methods to the model?
     @staticmethod
     def create(name: str, ext: str,source: Optional[str] = None):
-        file = File(name=name, ext=ext, source=source)
+        file = FileMap(name=name, ext=ext, source=source)
         # https://stackoverflow.com/questions/64763770/
         # why-we-use-yield-to-get-sessionlocal-in-fastapi-with-sqlalchemy
         # https://github.com/tiangolo/fastapi/issues/2894
@@ -41,12 +41,15 @@ class File(Base):
     @staticmethod
     def get_by_name(name: str):
         db = next(deps.get_db())
-        return db.query(File).filter(File.name == name).first()
+        return db.query(FileMap).filter(FileMap.name == name).first()
 
 
     @staticmethod
     def determined_source(name: str):
-        source_map  = {'Order_Summary': 'MrDFood'}
+        source_map  = {
+            'Order_Summary': 'MrDFood',
+            'europe_middle_east_africa': 'UberEats'
+        }
         source = None
 
         for key in source_map.keys():
