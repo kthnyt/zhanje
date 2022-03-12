@@ -122,9 +122,9 @@ class ReadEmail:
     def get_attachments(save_dir: str = settings.DEFAULT_FILE_DIRECTORY, email_label: str = 'Inbox',
                         search_string: str = 'ALL'):
 
+        # TODO: Email Feature - Replace with official Gmail API
         email_user = settings.IMAP_USER
         email_pass = settings.IMAP_PASSWORD
-
         mail = imaplib.IMAP4_SSL(settings.IMAP_HOST, settings.IMAP_PORT)
         mail.login(email_user, email_pass)
 
@@ -147,7 +147,10 @@ class ReadEmail:
                 raw_email = data[0][1]
 
                 # converts byte literal to string removing b''
-                raw_email_string = raw_email.decode('utf-8')
+                try:
+                    raw_email_string = raw_email.decode('utf-8')
+                except:
+                    pass
                 email_message = email.message_from_string(raw_email_string)
 
                 # downloading attachments
@@ -163,7 +166,7 @@ class ReadEmail:
                     if original_filename is not None:
                         attachment_number += 1
 
-                        filename, file_ext = original_filename.split('.')
+                        filename, file_ext = original_filename.split('.')[:2] # TODO: Remove this hack - tech debt
                         filename = filename.replace('(', '').replace(')', '').replace(' ', '_').replace('?','').replace('-','_')
                         if file_ext == 'csv':
                             # use uuid from db table to save filename, for security!
