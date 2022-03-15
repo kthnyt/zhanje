@@ -1,6 +1,5 @@
 from sqlalchemy import Column, ForeignKey, String, Float, Date, Time
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
 
 from app.db.base_class import Base
 
@@ -22,7 +21,6 @@ class MrDOrder(Base):
     restaurant_status = Column(String)
 
     platform_id = Column(UUID, ForeignKey("platforms.id"))
-    platform = relationship("Platform")
 
 
 
