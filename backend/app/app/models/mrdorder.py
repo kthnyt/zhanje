@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, String, Float, Date, Time
+from sqlalchemy import Column, ForeignKey, String, Float, Date, Time, text
 from sqlalchemy.dialects.postgresql import UUID
 
 from app.db.base_class import Base
@@ -7,7 +7,7 @@ from app.db.base_class import Base
 class MrDOrder(Base):
     __tablename__ = "mrdorders"
 
-    id = Column(UUID, primary_key=True, index=True)
+    id = Column(UUID, server_default=text("uuid_generate_v4()"), primary_key=True)
     invoice_number = Column(String, nullable=False)
     date = Column(Date, nullable=False)
     time = Column(Time, nullable=False)
@@ -21,6 +21,3 @@ class MrDOrder(Base):
     restaurant_status = Column(String)
 
     platform_id = Column(UUID, ForeignKey("platforms.id"))
-
-
-
