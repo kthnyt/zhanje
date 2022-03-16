@@ -21,7 +21,7 @@ celery_app.conf.beat_schedule = {
     },
     'get-email-attachments': {
         'task': 'app.worker.get_email_attachments',
-        'schedule': crontab(minute='*/5'),
+        'schedule': crontab(minute='*/20'),
         'args': None
     },
 }

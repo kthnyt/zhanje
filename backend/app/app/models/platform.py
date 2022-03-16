@@ -15,4 +15,6 @@ class Platform(Base):
     description = Column(String, index=True)
     is_active = Column(Boolean, nullable=False, server_default='TRUE')
 
-    orders = relationship("MrDOrder", backref="mrdorder", lazy='select')
+    mrd_orders = relationship("MrDOrder", backref="mrd_order", lazy='select')
+    uber_orders = relationship("UberOrder", backref="uber_order", lazy='select')
+    loyverse_orders = relationship("LoyverseOrder", backref="loyverse_order", lazy='select')

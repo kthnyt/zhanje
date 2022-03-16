@@ -9,6 +9,9 @@ from app.schemas.platform import PlatformCreate, PlatformUpdate
 
 
 class CRUDPlatform(CRUDBase[Platform, PlatformCreate, PlatformUpdate]):
+    def get_by_name(self, db: Session, *,  name: str) -> Optional[Platform]:
+        return db.query(Platform).filter(Platform.name == name).first()
+
     def create(self, db: Session, *, obj_in: PlatformCreate) -> Platform:
         db_obj = Platform(
             name=obj_in.name,
