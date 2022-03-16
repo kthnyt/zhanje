@@ -9,7 +9,7 @@ class LoyverseOrder(Base):
 
     id = Column(UUID, server_default=text("uuid_generate_v4()"), primary_key=True)
     date = Column(DateTime(timezone=True))
-    receipt_number = Column(String, unique=True)
+    receipt_number = Column(String, unique=False) #TODO: tech-debt
     category = Column(String)
     sku = Column(Integer)
     item = Column(String)

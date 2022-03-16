@@ -2,7 +2,7 @@ from sqlalchemy import String, Date, Time, Float, Integer, DateTime
 
 
 class LoyverseParser:
-    db_table = 'loyverseorders'
+    db_table = 'loyverse_orders'
 
     column_mapper = {'Date':'date',
                      'Receipt number':'receipt_number',

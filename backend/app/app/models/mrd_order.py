@@ -5,7 +5,7 @@ from app.db.base_class import Base
 
 
 class MrDOrder(Base):
-    __tablename__ = "mrdorders"
+    __tablename__ = "mrd_orders"
 
     id = Column(UUID, server_default=text("uuid_generate_v4()"), primary_key=True)
     invoice_number = Column(String, nullable=False, unique=True)

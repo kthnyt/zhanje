@@ -2,7 +2,7 @@ from sqlalchemy import String, Date, Time, Float
 
 
 class MrDParser:
-    db_table = 'mrdorders'
+    db_table = 'mrd_orders'
 
     column_mapper = {'Invoice Number': 'invoice_number',
                        'Date': 'date',
