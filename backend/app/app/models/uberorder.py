@@ -7,7 +7,7 @@ class UberOrder(Base):
     __tablename__ = 'uberorders'
 
     id = Column(UUID, server_default=text("uuid_generate_v4()"), primary_key=True)
-    order_id = Column(String)
+    order_id = Column(String, unique=True)
     store_name = Column(String)
     order_or_refund_date = Column(Date)
     order_accept_time = Column(Time)

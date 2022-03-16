@@ -32,10 +32,11 @@ async def create_upload_csv(
         platform = crud.platform.get_by_name(db, name=template)
         print(platform.name)
         parser_obj = Parser()
-        parser= parser_obj.set_parser_by_template(platform.name)
+        parser= parser_obj.set_by_template(platform.name)
 
         df = pd.read_csv(csv_file.file)
         df = df.rename(columns=parser.column_mapper).copy()
+
         df['platform_id'] = platform.id
         engine = create_engine(settings.SQLALCHEMY_DATABASE_URI, pool_pre_ping=True)
         df.to_sql(
