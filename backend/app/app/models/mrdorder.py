@@ -8,7 +8,7 @@ class MrDOrder(Base):
     __tablename__ = "mrdorders"
 
     id = Column(UUID, server_default=text("uuid_generate_v4()"), primary_key=True)
-    invoice_number = Column(String, nullable=False)
+    invoice_number = Column(String, nullable=False, unique=True)
     date = Column(Date, nullable=False)
     time = Column(Time, nullable=False)
     restaurant = Column(String)

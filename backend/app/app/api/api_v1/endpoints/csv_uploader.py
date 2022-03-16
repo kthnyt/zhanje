@@ -1,40 +1,19 @@
 from typing import Any, Optional
 
 import pandas as pd
-from app.core.config import settings
 from fastapi import APIRouter, File, UploadFile, Depends, HTTPException
-from sqlalchemy import String, Date, Time, Float, create_engine
+from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
+from starlette import status
 
+from app.core.config import settings
 from app import models, crud
 from app.api import deps
-from starlette import status
+from app.parsers import Parser
+
 
 router = APIRouter()
 
-mrdorder_mapper = {'Invoice Number':'invoice_number',
-                   'Date':'date',
-                   'Time':'time',
-                   'Restaurant':'restaurant',
-                   'Suburb':'suburb',
-                   'Prep Time':'prep_time_minutes',
-                   'Type':'order_type',
-                   'Food Total':'food_total',
-                   'Comm. Ex VAT(%)':'commission_ex_vat_per',
-                   'Due To You':'due_to_you',
-                   'Restaurant Status':'restaurant_status'}
-
-mrdorder_dtype = {'invoice_number':String,
-                  'date':Date,
-                  'time':Time,
-                  'restaurant':String,
-                  'suburb':String,
-                  'prep_time_minutes':Float,
-                  'order_type':String,
-                  'food_total':Float,
-                  'commission_ex_vat_per':Float,
-                  'due_to_you':Float,
-                  'restaurant_status':String}
 
 @router.post("/csv-uploader/")
 async def create_upload_csv(
@@ -51,11 +30,21 @@ async def create_upload_csv(
 
     try:
         platform = crud.platform.get_by_name(db, name=template)
+        print(platform.name)
+        parser_obj = Parser()
+        parser= parser_obj.set_parser_by_template(platform.name)
+
         df = pd.read_csv(csv_file.file)
-        df = df.rename(columns=mrdorder_mapper).copy()
+        df = df.rename(columns=parser.column_mapper).copy()
         df['platform_id'] = platform.id
         engine = create_engine(settings.SQLALCHEMY_DATABASE_URI, pool_pre_ping=True)
-        df.to_sql(name='mrdorders', con=engine, schema=None, if_exists='append', index=False, chunksize=None, dtype=mrdorder_dtype, method=None)
-    except Exception as error:
-        pass
+        df.to_sql(
+            name=parser.db_table,
+            con=engine,
+            if_exists='append',
+            index=False,
+            chunksize=500,
+            dtype=parser.column_dtype)
+    except Exception as e:
+        print(f'{e}')
     return {"filename": csv_file.filename, "template": template}
