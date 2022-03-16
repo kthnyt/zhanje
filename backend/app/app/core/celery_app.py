@@ -11,6 +11,7 @@ celery_app.conf.task_routes = {
     "app.worker.test_celery": "main-queue",
     "app.worker.add": "main-queue",
     "app.worker.get_email_attachments": "main-queue",
+    "app.worker.consolidate_platform_orders": "main-queue",
 }
 
 celery_app.conf.beat_schedule = {
@@ -23,6 +24,11 @@ celery_app.conf.beat_schedule = {
         'task': 'app.worker.get_email_attachments',
         'schedule': crontab(minute='*/20'),
         'args': None
+    },
+    'consolidate-platform-orders': {
+        'task': 'app.worker.consolidate_platform_orders',
+        'schedule': crontab(hour='*/1'),
+        'args': 'All'
     },
 }
 

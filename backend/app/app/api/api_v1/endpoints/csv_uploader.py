@@ -1,6 +1,7 @@
 from typing import Any, Optional
 
 import pandas as pd
+from app.core.celery_app import celery_app
 from psycopg2 import errors
 from fastapi import APIRouter, File, UploadFile, Depends, HTTPException, Form
 from sqlalchemy import create_engine
@@ -49,6 +50,10 @@ async def create_upload_csv(
                             index=False,
                             chunksize=500,
                             dtype=parser.column_dtype)
+
+        # trigger consolidation of platform orders into main order table
+        celery_app.send_task("app.worker.consolidate_platform_orders", args=[template])
+
     except IntegrityError as e:
         if isinstance(e.orig, UniqueViolation):
             # dupe_field = parse(

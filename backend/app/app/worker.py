@@ -1,10 +1,12 @@
 import logging
 
-from app.utils import ReadEmail
 from raven import Client
 
 from app.core.celery_app import celery_app
 from app.core.config import settings
+from app.data_processors.order_consolidator import OrderProcessor
+from app.utils import ReadEmail
+
 
 client_sentry = Client(settings.SENTRY_DSN)
 
@@ -22,3 +24,8 @@ def add(x, y):
 @celery_app.task
 def get_email_attachments():
     return ReadEmail.get_attachments()
+
+
+@celery_app.task
+def consolidate_platform_orders(template: str) -> bool:
+    return OrderProcessor.consolidate(template)
