@@ -35,6 +35,9 @@ async def create_upload_csv(
 
     try:
         platform = crud.platform.get_by_name(db, name=template)
+
+        if not platform:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No platform found matching template name: '{template}'")
         parser_obj = Parser()
         parser= parser_obj.set_by_template(platform.name)
 
