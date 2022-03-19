@@ -28,4 +28,5 @@ def get_email_attachments():
 
 @celery_app.task
 def consolidate_platform_orders(template: str) -> bool:
-    return OrderProcessor.consolidate(template)
+    order_processor = OrderProcessor()
+    return order_processor.consolidate(template)
