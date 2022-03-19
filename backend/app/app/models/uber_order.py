@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, String, Float, Date, Time, text
+from sqlalchemy import Column, ForeignKey, String, Float, Date, Time, text, Boolean
 from sqlalchemy.dialects.postgresql import UUID, TIMESTAMP
 
 from app.db.base_class import Base
@@ -23,5 +23,6 @@ class UberOrder(Base):
     payout = Column(Float)
     payout_date = Column(Date)
     order_status = Column(String)
+    is_processed = Column(Boolean, nullable=False, server_default="false")
 
     platform_id = Column(UUID, ForeignKey("platforms.id"))

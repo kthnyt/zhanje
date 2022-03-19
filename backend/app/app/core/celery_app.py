@@ -27,8 +27,8 @@ celery_app.conf.beat_schedule = {
     },
     'consolidate-platform-orders': {
         'task': 'app.worker.consolidate_platform_orders',
-        'schedule': crontab(hour='*/1'),
-        'args': 'All'
+        'schedule': crontab(minute='*/60'),
+        'args': ('All',)
     },
 }
 

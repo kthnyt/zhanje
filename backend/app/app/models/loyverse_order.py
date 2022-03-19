@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, String, Float, text, Integer, DateTime
+from sqlalchemy import Column, ForeignKey, String, Float, text, Integer, DateTime, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 
 from app.db.base_class import Base
@@ -19,5 +19,6 @@ class LoyverseOrder(Base):
     store = Column(String)
     cashier_name = Column(String)
     status = Column(String)
+    is_processed = Column(Boolean, nullable=False, server_default="false")
 
     platform_id = Column(UUID, ForeignKey("platforms.id"))

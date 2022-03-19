@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, String, Float, Date, Time, text
+from sqlalchemy import Column, ForeignKey, String, Float, Date, Time, text, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 
 from app.db.base_class import Base
@@ -19,5 +19,6 @@ class MrDOrder(Base):
     commission_ex_vat_per = Column(Float)
     due_to_you = Column(Float, nullable=False)
     restaurant_status = Column(String)
+    is_processed = Column(Boolean, nullable=False, server_default="false")
 
     platform_id = Column(UUID, ForeignKey("platforms.id"))
